@@ -1,0 +1,14 @@
+{
+  "warehouses": [
+    { "buildingId": "seed-01", "productName": "Patates Tohumu", "variety": "Agria", "seedClass": "Sertifikalı A", "lotNumber": "PT-2026-0141", "temperatureC": 3.8, "targetTemperatureC": 4, "humidityPct": 93, "occupancyPct": 88, "status": "normal", "updatedAt": "2026-10-19T09:40:00+03:00" },
+    { "buildingId": "seed-02", "productName": "Patates Tohumu", "variety": "Marabel", "seedClass": "Elit", "lotNumber": "PT-2026-0152", "temperatureC": 4.1, "targetTemperatureC": 4, "humidityPct": 94, "occupancyPct": 76, "status": "normal", "updatedAt": "2026-10-19T09:40:00+03:00" },
+    { "buildingId": "seed-03", "productName": "Patates Tohumu", "variety": "Lady Olympia", "seedClass": "Sertifikalı A", "lotNumber": "PT-2026-0163", "temperatureC": 5.9, "targetTemperatureC": 4, "humidityPct": 89, "occupancyPct": 92, "status": "temperature_alert", "updatedAt": "2026-10-19T09:38:00+03:00" },
+    { "buildingId": "seed-04", "productName": "Patates Tohumu", "variety": "Madeleine", "seedClass": "Süper Elit", "lotNumber": "PT-2026-0174", "temperatureC": 3.6, "targetTemperatureC": 3.5, "humidityPct": 95, "occupancyPct": 64, "status": "normal", "updatedAt": "2026-10-19T09:40:00+03:00" },
+    { "buildingId": "seed-05", "productName": "Patates Tohumu", "variety": "Granola", "seedClass": "Sertifikalı B", "lotNumber": "PT-2026-0185", "temperatureC": 4.0, "targetTemperatureC": 4, "humidityPct": 92, "occupancyPct": 81, "status": "normal", "updatedAt": "2026-10-19T09:39:00+03:00" },
+    { "buildingId": "seed-06", "productName": "Patates Tohumu", "variety": "Hermes", "seedClass": "Elit", "lotNumber": "PT-2026-0196", "temperatureC": 3.9, "targetTemperatureC": 4, "humidityPct": 93, "occupancyPct": 97, "status": "normal", "updatedAt": "2026-10-19T09:40:00+03:00" },
+    { "buildingId": "seed-07", "productName": "Patates Tohumu", "variety": "Innovator", "seedClass": "Sertifikalı A", "lotNumber": "PT-2026-0207", "temperatureC": 4.2, "targetTemperatureC": 4, "humidityPct": 94, "occupancyPct": 58, "status": "normal", "updatedAt": "2026-10-19T09:37:00+03:00" },
+    { "buildingId": "seed-08", "productName": "Patates Tohumu", "variety": "Fabula", "seedClass": "Sertifikalı A", "lotNumber": "PT-2026-0218", "temperatureC": 3.7, "targetTemperatureC": 4, "humidityPct": 91, "occupancyPct": 72, "status": "normal", "updatedAt": "2026-10-19T09:40:00+03:00" },
+    { "buildingId": "seed-09", "productName": "Patates Tohumu", "variety": "Russet Burbank", "seedClass": "Elit", "lotNumber": "PT-2026-0229", "temperatureC": 4.3, "targetTemperatureC": 4, "humidityPct": 93, "occupancyPct": 85, "status": "normal", "updatedAt": "2026-10-19T09:36:00+03:00" },
+    { "buildingId": "seed-10", "productName": "Patates Tohumu", "variety": "Agria", "seedClass": "Sertifikalı A", "lotNumber": "PT-2026-0130", "temperatureC": 9.4, "targetTemperatureC": 4, "humidityPct": 78, "occupancyPct": 12, "status": "maintenance", "updatedAt": "2026-10-19T08:15:00+03:00" }
+  ]
+}

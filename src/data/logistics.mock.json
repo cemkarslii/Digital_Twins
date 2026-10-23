@@ -1,0 +1,92 @@
+{
+  "records": [
+    {
+      "id": "mock-gate-001",
+      "area": "gate_security",
+      "senderFullName": "Deniz Örnek",
+      "licensePlate": "34 DEM 001",
+      "waybillDate": "2026-10-16T08:15:00+03:00",
+      "status": "at_gate",
+      "weighingStartedAt": null,
+      "productName": "Buğday Tohumu",
+      "waybillQuantity": { "value": 24, "unit": "ton" },
+      "driverFullName": "Mert Deneme"
+    },
+    {
+      "id": "mock-gate-002",
+      "area": "gate_security",
+      "senderFullName": "Ece Deneme",
+      "licensePlate": "06 DEM 002",
+      "waybillDate": "2026-10-16T07:40:00+03:00",
+      "status": "weighing",
+      "weighingStartedAt": "2026-10-16T09:12:00+03:00",
+      "productName": "Mısır Tohumu",
+      "waybillQuantity": { "value": 18500, "unit": "kg" },
+      "driverFullName": "Onur Örnek"
+    },
+    {
+      "id": "mock-gate-003",
+      "area": "gate_security",
+      "senderFullName": "Selin Temsili",
+      "licensePlate": "16 DEM 003",
+      "waybillDate": "2026-10-16T08:30:00+03:00",
+      "status": "waiting",
+      "weighingStartedAt": null,
+      "productName": "Ayçiçeği Tohumu",
+      "waybillQuantity": { "value": 20, "unit": "ton" },
+      "driverFullName": "Arda Deneme"
+    },
+    {
+      "id": "mock-park-001",
+      "area": "truck_park",
+      "senderFullName": "Bora Örnek",
+      "licensePlate": "35 DEM 004",
+      "waybillDate": "2026-10-16T06:50:00+03:00",
+      "status": "waiting",
+      "weighingStartedAt": null,
+      "productName": "Arpa Tohumu",
+      "waybillQuantity": { "value": 22, "unit": "ton" },
+      "driverFullName": "Emre Temsili",
+      "vehicleId": "trk-03"
+    },
+    {
+      "id": "mock-park-002",
+      "area": "truck_park",
+      "senderFullName": "Duru Deneme",
+      "licensePlate": "45 DEM 005",
+      "waybillDate": "2026-10-16T07:10:00+03:00",
+      "status": "waiting",
+      "weighingStartedAt": null,
+      "productName": "Ambalaj Malzemesi",
+      "waybillQuantity": { "value": 4200, "unit": "kg" },
+      "driverFullName": "Can Örnek",
+      "vehicleId": "trk-06"
+    },
+    {
+      "id": "mock-park-003",
+      "area": "truck_park",
+      "senderFullName": "İpek Örnek",
+      "licensePlate": "10 DEM 006",
+      "waybillDate": "2026-10-16T07:25:00+03:00",
+      "status": "waiting",
+      "weighingStartedAt": null,
+      "productName": "Buğday Tohumu",
+      "waybillQuantity": { "value": 26, "unit": "ton" },
+      "driverFullName": "Kerem Deneme",
+      "vehicleId": "trk-10"
+    },
+    {
+      "id": "mock-park-004",
+      "area": "truck_park",
+      "senderFullName": "Ada Temsili",
+      "licensePlate": "59 DEM 007",
+      "waybillDate": "2026-10-16T08:05:00+03:00",
+      "status": "waiting",
+      "weighingStartedAt": null,
+      "productName": "Mısır Tohumu",
+      "waybillQuantity": { "value": 21600, "unit": "kg" },
+      "driverFullName": "Eren Örnek",
+      "vehicleId": "trk-13"
+    }
+  ]
+}
