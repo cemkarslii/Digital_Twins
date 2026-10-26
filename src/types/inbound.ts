@@ -1,4 +1,5 @@
 import type { VehicleEntity } from './factory';
+import type { TruckShipment } from './shipment';
 
 /**
  * Trucks on public roads, heading to the campus. Records hold only what the carrier's telematics
@@ -20,26 +21,12 @@ export interface InboundTelemetry {
   cargoTemperatureC: number | null;
 }
 
-export interface InboundShipment {
-  waybillNumber: string;
-  senderFullName: string;
-  productName: string;
-  quantity: { value: number; unit: 'kg' | 'ton' };
-  originCity: string;
-  /** Allowed cargo temperature band in °C; null when the load needs no cold chain. */
-  temperatureRangeC: [number, number] | null;
-}
-
-export interface InboundVehicle {
+/** A truck on the road, with the same truck and waybill fields as trucks on site. */
+export interface InboundVehicle extends TruckShipment {
   id: string;
-  licensePlate: string;
-  trailerPlate: string | null;
   vehicleType: VehicleEntity['vehicleType'];
-  carrierName: string;
-  driverFullName: string;
-  shipment: InboundShipment;
-  /** Route engine output: planned road distance and what is left of it. */
-  route: { corridor: string; totalKm: number; remainingKm: number };
+  /** Route engine output: origin, planned road distance and what is left of it. */
+  route: { originCity: string; corridor: string; totalKm: number; remainingKm: number };
   /** Gate slot booked for this delivery; lateness is measured against it. */
   appointmentAt: string;
   estimatedArrivalAt: string;

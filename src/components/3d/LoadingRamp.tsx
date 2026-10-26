@@ -38,6 +38,7 @@ export function LoadingRamp() {
       dock.approach.maxX - dock.approach.minX,
       dock.approach.maxZ - dock.approach.minZ,
       dock.streetY + 0.015,
+      [dock.approachRoadCorner],
     );
     return { floor, retainingWall, approach, texture: createGroundTexture('concrete') };
   }, []);

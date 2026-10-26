@@ -1,6 +1,0 @@
-{
-  "name": "Industrial Factory Digital Twin",
-  "description": "High-fidelity interactive 3D digital twin of the Fine Food industrial facility, featuring accurate procedural architecture, solar panel arrays, logistics infrastructure, and telemetry inspection.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

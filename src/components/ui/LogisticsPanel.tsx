@@ -3,6 +3,7 @@ import { Scale, ShieldCheck, Truck, X } from 'lucide-react';
 import { useFactoryStore } from '../../store/useFactoryStore';
 import { getLogisticsRecords } from '../../services/logisticsService';
 import type { LogisticsArea, LogisticsRecord, LogisticsStatus } from '../../types/logistics';
+import { ShipmentRows, TruckPlate } from './ShipmentDetails';
 
 const AREA_META: Record<LogisticsArea, { title: string; eyebrow: string; icon: typeof Truck }> = {
   gate_security: { title: 'Kantar ve güvenlik', eyebrow: 'GİRİŞ KAPISI', icon: ShieldCheck },
@@ -15,20 +16,10 @@ const STATUS_LABEL: Record<LogisticsStatus, string> = {
   waiting: 'Beklemede',
 };
 
-const dateTime = new Intl.DateTimeFormat('tr-TR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Istanbul' });
-const number = new Intl.NumberFormat('tr-TR');
-
-const formatDate = (iso: string | null) => (iso ? dateTime.format(new Date(iso)) : '—');
-const formatQuantity = ({ value, unit }: LogisticsRecord['waybillQuantity']) => `${number.format(value)} ${unit === 'ton' ? 'ton' : 'kg'}`;
-
 type LoadState =
   | { phase: 'loading' }
   | { phase: 'error'; message: string }
   | { phase: 'ready'; records: LogisticsRecord[] };
-
-function Row({ label, value }: { label: string; value: string }) {
-  return <div><dt>{label}</dt><dd>{value}</dd></div>;
-}
 
 /** Side panel listing the trucks of the selected logistics area. Data comes from the logistics service only. */
 export function LogisticsPanel() {
@@ -74,17 +65,10 @@ export function LogisticsPanel() {
         {state.phase === 'ready' && state.records.map((record) => (
           <article key={record.id} className="logistics-card">
             <div className="logistics-card-head">
-              <strong className="logistics-plate">{record.licensePlate}</strong>
+              <TruckPlate truck={record} />
               <span className={`logistics-status logistics-status-${record.status}`}>{STATUS_LABEL[record.status]}</span>
             </div>
-            <dl>
-              <Row label="Gönderici" value={record.senderFullName} />
-              <Row label="Şoför" value={record.driverFullName} />
-              <Row label="Ürün" value={record.productName} />
-              <Row label="İrsaliye miktarı" value={formatQuantity(record.waybillQuantity)} />
-              <Row label="İrsaliye tarihi" value={formatDate(record.waybillDate)} />
-              <Row label="Kantar başlangıcı" value={formatDate(record.weighingStartedAt)} />
-            </dl>
+            <dl><ShipmentRows truck={record} weighingStartedAt={record.weighingStartedAt} /></dl>
             {record.status === 'weighing' && <Scale className="logistics-scale" size={14} aria-hidden />}
           </article>
         ))}

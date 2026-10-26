@@ -1,8 +1,9 @@
 import mockData from '../data/inboundTraffic.mock.json';
 import type {
-  GeoPoint, InboundAssessment, InboundException, InboundItem, InboundPhase, InboundShipment,
+  GeoPoint, InboundAssessment, InboundException, InboundItem, InboundPhase,
   InboundSnapshot, InboundTelemetry, InboundVehicle,
 } from '../types/inbound';
+import { parseTruckShipment } from './truckShipment';
 
 // Operating thresholds. Distances are road kilometres to the gate.
 export const APPROACHING_KM = 50;
@@ -25,24 +26,6 @@ const isTimestamp = (value: unknown): value is string => typeof value === 'strin
   && Number.isFinite(Date.parse(value));
 const VEHICLE_TYPES: readonly InboundVehicle['vehicleType'][] = ['semi_trailer', 'box_truck', 'flatbed'];
 
-function parseShipment(value: unknown): InboundShipment | null {
-  if (!isObject(value) || !isText(value.waybillNumber) || !isText(value.senderFullName)
-    || !isText(value.productName) || !isText(value.originCity)
-    || !isObject(value.quantity) || !isNonNegative(value.quantity.value)
-    || !(value.quantity.unit === 'kg' || value.quantity.unit === 'ton')) return null;
-  const range = value.temperatureRangeC;
-  if (!(range === null || (Array.isArray(range) && range.length === 2
-    && isNumber(range[0]) && isNumber(range[1]) && range[0] <= range[1]))) return null;
-  return {
-    waybillNumber: value.waybillNumber,
-    senderFullName: value.senderFullName,
-    productName: value.productName,
-    quantity: { value: value.quantity.value, unit: value.quantity.unit },
-    originCity: value.originCity,
-    temperatureRangeC: range === null ? null : [range[0], range[1]],
-  };
-}
-
 const isGeoPoint = (value: unknown): value is GeoPoint => isObject(value)
   && isNumber(value.lat) && Math.abs(value.lat) <= 90 && isNumber(value.lng) && Math.abs(value.lng) <= 180;
 
@@ -61,14 +44,12 @@ function parseTelemetry(value: unknown): InboundTelemetry | null {
 }
 
 function parseVehicle(value: unknown, index: number): InboundVehicle {
-  const shipment = isObject(value) ? parseShipment(value.shipment) : null;
+  const truck = parseTruckShipment(value);
   const telemetry = isObject(value) ? parseTelemetry(value.telemetry) : null;
-  if (!isObject(value) || !shipment || !telemetry
-    || !isText(value.id) || !isText(value.licensePlate)
-    || !(value.trailerPlate === null || isText(value.trailerPlate))
+  if (!isObject(value) || !truck || !telemetry
+    || !isText(value.id)
     || !VEHICLE_TYPES.includes(value.vehicleType as InboundVehicle['vehicleType'])
-    || !isText(value.carrierName) || !isText(value.driverFullName)
-    || !isObject(value.route) || !isText(value.route.corridor)
+    || !isObject(value.route) || !isText(value.route.originCity) || !isText(value.route.corridor)
     || !isNumber(value.route.totalKm) || value.route.totalKm <= 0
     || !isNonNegative(value.route.remainingKm) || value.route.remainingKm > value.route.totalKm
     || !isTimestamp(value.appointmentAt) || !isTimestamp(value.estimatedArrivalAt)) {
@@ -76,13 +57,9 @@ function parseVehicle(value: unknown, index: number): InboundVehicle {
   }
   return {
     id: value.id,
-    licensePlate: value.licensePlate,
-    trailerPlate: value.trailerPlate,
+    ...truck,
     vehicleType: value.vehicleType as InboundVehicle['vehicleType'],
-    carrierName: value.carrierName,
-    driverFullName: value.driverFullName,
-    shipment,
-    route: { corridor: value.route.corridor, totalKm: value.route.totalKm, remainingKm: value.route.remainingKm },
+    route: { originCity: value.route.originCity, corridor: value.route.corridor, totalKm: value.route.totalKm, remainingKm: value.route.remainingKm },
     appointmentAt: value.appointmentAt,
     estimatedArrivalAt: value.estimatedArrivalAt,
     telemetry,
@@ -113,7 +90,7 @@ function bearing(from: GeoPoint, to: GeoPoint) {
 
 /** Business rules over one record; pure, so a live feed reuses them unchanged. */
 export function assessInbound(vehicle: InboundVehicle, asOf: string, gate: GeoPoint): InboundAssessment {
-  const { route, telemetry, shipment } = vehicle;
+  const { route, telemetry, waybill } = vehicle;
   const phase: InboundPhase = route.remainingKm <= ARRIVING_KM ? 'arriving'
     : route.remainingKm <= APPROACHING_KM ? 'approaching' : 'en_route';
   const delayMinutes = minutesBetween(vehicle.appointmentAt, vehicle.estimatedArrivalAt);
@@ -125,7 +102,7 @@ export function assessInbound(vehicle: InboundVehicle, asOf: string, gate: GeoPo
   // A stale fix says nothing about current speed.
   if (!signalLost && telemetry.speedKmh < STOPPED_BELOW_KMH) exceptions.push('stopped');
   if (signalLost) exceptions.push('signal_lost');
-  const range = shipment.temperatureRangeC, temperature = telemetry.cargoTemperatureC;
+  const range = waybill.temperatureRangeC, temperature = telemetry.cargoTemperatureC;
   if (range && temperature !== null && (temperature < range[0] || temperature > range[1])) exceptions.push('cold_chain');
 
   return {

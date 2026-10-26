@@ -4,6 +4,7 @@ import { LogisticsPanel } from './components/ui/LogisticsPanel';
 import { SeedStoragePanel } from './components/ui/SeedStoragePanel';
 import { InboundTrafficPanel } from './components/ui/InboundTrafficPanel';
 import { LoadingDocksPanel } from './components/ui/LoadingDocksPanel';
+import { WarehousePanel } from './components/ui/WarehousePanel';
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
       <SeedStoragePanel />
       <InboundTrafficPanel />
       <LoadingDocksPanel />
+      <WarehousePanel />
     </main>
   );
 }

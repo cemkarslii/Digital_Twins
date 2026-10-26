@@ -10,6 +10,7 @@ import { WeighbridgeStation } from './WeighbridgeStation';
 import { InboundApproach } from './InboundApproach';
 import { LoadingDocks } from './LoadingDocks';
 import { SeedStorageInteriors } from './SeedStorageInteriors';
+import { WarehouseInterior } from './warehouse/WarehouseInterior';
 import { CampusInfrastructure } from './CampusInfrastructure';
 import { FactoryBuilding } from './FactoryBuilding';
 import { CampusLandscape } from './CampusLandscape';
@@ -45,6 +46,7 @@ export function FactoryCanvas() {
           <CampusParking />
           {buildings.map((building) => <FactoryBuilding key={building.id} building={building} />)}
           <SeedStorageInteriors />
+          <WarehouseInterior />
           <CampusVehicles />
           <LoadingDocks />
           <CampusInfrastructure />

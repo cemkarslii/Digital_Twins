@@ -14,8 +14,6 @@
     { "doorId": "R3-01", "state": "occupied", "visit": { "licensePlate": "26 DEM 321", "carrierName": "Örnek Lojistik", "direction": "outbound", "productName": "Buğday Tohumu", "dockedAt": "2026-10-22T09:15:00+03:00", "plannedDepartureAt": "2026-10-22T10:40:00+03:00", "handledPallets": 30, "totalPallets": 33 } },
     { "doorId": "R3-02", "state": "occupied", "visit": { "licensePlate": "03 DEM 322", "carrierName": "Temsili Nakliyat", "direction": "outbound", "productName": "Arpa Tohumu", "dockedAt": "2026-10-22T10:10:00+03:00", "plannedDepartureAt": "2026-10-22T11:45:00+03:00", "handledPallets": 8, "totalPallets": 33 } },
     { "doorId": "R3-03", "state": "free" },
-    { "doorId": "R3-04", "state": "occupied", "visit": { "licensePlate": "41 DEM 324", "carrierName": "Deneme Kargo", "direction": "inbound", "productName": "Ambalaj Malzemesi", "dockedAt": "2026-10-22T08:20:00+03:00", "plannedDepartureAt": "2026-10-22T09:50:00+03:00", "handledPallets": 18, "totalPallets": 26 } },
-    { "doorId": "R3-05", "state": "free" },
-    { "doorId": "R3-06", "state": "occupied", "visit": { "licensePlate": "01 DEM 326", "carrierName": "Temsili Nakliyat", "direction": "inbound", "productName": "Mısır Tohumu", "dockedAt": "2026-10-22T10:26:00+03:00", "plannedDepartureAt": "2026-10-22T12:10:00+03:00", "handledPallets": 0, "totalPallets": 24 } }
+    { "doorId": "R3-04", "state": "occupied", "visit": { "licensePlate": "41 DEM 324", "carrierName": "Deneme Kargo", "direction": "inbound", "productName": "Ambalaj Malzemesi", "dockedAt": "2026-10-22T08:20:00+03:00", "plannedDepartureAt": "2026-10-22T09:50:00+03:00", "handledPallets": 18, "totalPallets": 26 } }
   ]
 }

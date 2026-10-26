@@ -1,4 +1,4 @@
-import { Building2, Container, Layers2, Map, MoveUpRight, Route, Sprout, Truck, Warehouse } from 'lucide-react';
+import { Boxes, Building2, Container, Layers2, Map, MoveUpRight, Route, Sprout, Truck, Warehouse } from 'lucide-react';
 import { useFactoryStore } from '../../store/useFactoryStore';
 import type { ViewPreset } from '../../types/factory';
 
@@ -10,7 +10,7 @@ const views: { preset: ViewPreset; name: string; detail: string; icon: typeof Ma
 ];
 
 export function CampusOverview() {
-  const { viewPreset, setViewPreset, showZoneOverlay, toggleZoneOverlay, openLogisticsArea, seedStorageOpen, openSeedStorage, closeSeedStorage, inboundOpen, openInbound, closeInbound, docksOpen, openDocks, closeDocks } = useFactoryStore();
+  const { viewPreset, setViewPreset, showZoneOverlay, toggleZoneOverlay, openLogisticsArea, seedStorageOpen, openSeedStorage, closeSeedStorage, inboundOpen, openInbound, closeInbound, docksOpen, openDocks, closeDocks, warehouseOpen, openWarehouse, closeWarehouse } = useFactoryStore();
   return (
     <>
       {viewPreset !== 'top_down' && (
@@ -36,6 +36,9 @@ export function CampusOverview() {
           </button>
           <button onClick={() => docksOpen ? closeDocks() : openDocks()} aria-pressed={docksOpen}>
             <Container size={14} /> Yükleme rampaları
+          </button>
+          <button onClick={() => warehouseOpen ? closeWarehouse() : openWarehouse()} aria-pressed={warehouseOpen}>
+            <Boxes size={14} /> Depo içi
           </button>
         </div>
       <nav className="campus-view-switcher" aria-label="Kampüs perspektifleri">

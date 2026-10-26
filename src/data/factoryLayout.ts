@@ -39,10 +39,12 @@ const REFERENCE_BUILDINGS: BuildingEntity[] = [
   {
     id: 'bldg-02', name: 'Ana Fabrika · Güneş Panelli Doğu Bloğu', code: 'GES-02', type: 'building',
     category: 'solar_logistics', categoryLabel: 'Ana Fabrika Kompleksi',
-    dimensions: { width: 45, depth: 62, height: 9 }, position: [74, 4.5, 35], rotationY: 0,
+    // Widened east (west wall unchanged, east wall on the main-factory zone line) so the four
+    // 7 | 14 | 7 rack sections and the loading area with dock bank R3 fit side by side.
+    dimensions: { width: 52.5, depth: 62, height: 9 }, position: [77.75, 4.5, 35], rotationY: 0,
     roofType: 'solar_dense', wallColor: '#cdd1ce', roofColor: '#d0d5d2',
-    footprintAreaM2: 2790, operationalStatus: 'Aktif İzleme',
-    features: ['Kuzey–güney doğrultusunda yoğun fotovoltaik çatı dizileri', 'Paneller arasında açık renk bakım şeritleri', 'Ana üretim çatısından daha yüksek depo kütlesi', 'Kuzey cephesinde altı kapılı yükseltilmiş tır rampası (R3)', 'Doğu ve güneyde çevre servis yolu'],
+    footprintAreaM2: 3255, operationalStatus: 'Aktif İzleme',
+    features: ['Kuzey–güney doğrultusunda yoğun fotovoltaik çatı dizileri', 'Paneller arasında açık renk bakım şeritleri', 'Ana üretim çatısından daha yüksek depo kütlesi', 'İçeride dört depo bölümü, ana koridor ve doğu duvarı boyunca yükleme noktası', 'Kuzey cephesinde, yükleme noktasının önünde dört kapılı yükseltilmiş tır rampası (R3)', 'Doğu ve güneyde çevre servis yolu'],
     description: 'Referansta ana kompleksin doğusunda görülen uzun güneş panelli çatı. Panel sayısı ve enerji kapasitesi görselden doğrulanamadığı için operasyonel değer verilmez.',
     visible: true,
   },
@@ -264,13 +266,8 @@ const REFERENCE_GROUND_AREAS: GroundAreaEntity[] = [
     visible: true,
   },
   {
-    id: 'yard-east-staging', name: 'Doğu Depo Servis Apronu', type: 'ground_area',
-    center: [99.5, 34], dimensions: [6, 68], surfaceType: 'concrete_apron',
-    visible: true,
-  },
-  {
     id: 'yard-solar-south', name: 'Güneş Panelli Blok Güney Apronu', type: 'ground_area',
-    center: [74, 69], dimensions: [48, 7], surfaceType: 'concrete_apron',
+    center: [78, 69], dimensions: [52, 7], surfaceType: 'concrete_apron',
     visible: true,
   },
   {

@@ -38,11 +38,11 @@ const BANK_SPECS: BankSpec[] = [
     doorsAlong: evenly(-86.5, 6, DOCK_HIGH.spacing),
   },
   {
-    // East end of GES-02's north wall, on the level part of the R1 court and its approach pad.
-    // The gap between the end of the descent and the first stall lets R1 traffic turn into the court.
+    // GES-02's north wall in front of the interior loading area, on the level approach pad north of it.
+    // Doors stay east of the storage sections, which have no truck doors of their own.
     id: 'dock-ges02', code: 'R3', name: 'GES-02 Kuzey Rampası', buildingId: 'bldg-02',
     face: 'north', style: 'dock_high', apronY: LOADING_DOCK.streetY, stallLength: 18,
-    doorsAlong: evenly(164, 6, DOCK_HIGH.spacing),
+    doorsAlong: evenly(190, 4, DOCK_HIGH.spacing),
   },
 ];
 

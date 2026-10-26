@@ -8,12 +8,15 @@ interface SolarPanelRoofProps {
   height: number;
   pattern: 'dense' | 'striped';
   position?: [number, number, number];
+  /** Ghosted array for interior inspection; it also stops shadowing the interior. */
+  xray?: boolean;
 }
 
 const PANEL_WIDTH = 1.08;
 const PANEL_DEPTH = 2.1;
 const PANEL_GAP = 0.045;
 const PANEL_TILT = 0.025;
+const XRAY_OPACITY = 0.1;
 
 export const SolarPanelRoof: React.FC<SolarPanelRoofProps> = ({
   roofWidth,
@@ -21,6 +24,7 @@ export const SolarPanelRoof: React.FC<SolarPanelRoofProps> = ({
   height,
   pattern,
   position = [0, 0, 0],
+  xray = false,
 }) => {
   const frameRef = useRef<THREE.InstancedMesh>(null);
   const glassRef = useRef<THREE.InstancedMesh>(null);
@@ -102,20 +106,25 @@ export const SolarPanelRoof: React.FC<SolarPanelRoofProps> = ({
   }, [layout]);
 
   if (layout.frames.length === 0) return null;
+  // Keyed so the material is rebuilt when blending changes instead of mutated in place.
+  const seeKey = xray ? 'xray' : 'solid';
+  const see = { transparent: xray, opacity: xray ? XRAY_OPACITY : 1, depthWrite: !xray };
 
   return (
     <group position={position}>
       <instancedMesh ref={railRef} args={[undefined, undefined, layout.rails.length]} receiveShadow>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="#9b9f9c" metalness={0.6} roughness={0.5} />
+        <meshStandardMaterial key={seeKey} {...see} color="#9b9f9c" metalness={0.6} roughness={0.5} />
       </instancedMesh>
-      <instancedMesh ref={frameRef} args={[undefined, undefined, layout.frames.length]} castShadow receiveShadow>
+      <instancedMesh ref={frameRef} args={[undefined, undefined, layout.frames.length]} castShadow={!xray} receiveShadow>
         <boxGeometry args={[PANEL_WIDTH, 0.055, PANEL_DEPTH]} />
-        <meshStandardMaterial color="#929b9c" metalness={0.68} roughness={0.44} />
+        <meshStandardMaterial key={seeKey} {...see} color="#929b9c" metalness={0.68} roughness={0.44} />
       </instancedMesh>
       <instancedMesh ref={glassRef} args={[undefined, undefined, layout.glass.length]} receiveShadow>
         <planeGeometry args={[PANEL_WIDTH - 0.032, PANEL_DEPTH - 0.032]} />
         <meshStandardMaterial
+          key={seeKey}
+          {...see}
           map={panelTexture}
           color="#ffffff"
           metalness={0.32}

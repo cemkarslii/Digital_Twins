@@ -6,6 +6,7 @@ import { useFactoryStore } from '../../store/useFactoryStore';
 import { createBuildingTexture } from './buildingMaterials';
 import { LOADING_DOCK } from '../../data/loadingDock';
 import { OfficeFacade } from './OfficeFacade';
+import { WAREHOUSE_CONFIG } from '../../data/warehouseConfig';
 
 interface FactoryBuildingProps {
   building: BuildingEntity;
@@ -149,11 +150,12 @@ export const FactoryBuilding: React.FC<FactoryBuildingProps> = ({
   const openLogisticsArea = useFactoryStore((s) => s.openLogisticsArea);
   const openSeedStorage = useFactoryStore((s) => s.openSeedStorage);
   const seedStorageOpen = useFactoryStore((s) => s.seedStorageOpen);
+  const warehouseOpen = useFactoryStore((s) => s.warehouseOpen);
   const { width, depth, height } = building.dimensions;
   const effectiveWallColor = building.wallColor;
   const multiBay = building.roofType === 'gable_multi_bay' || building.roofType === 'skeletal_truss';
   const seedWarehouse = building.category === 'agri_storage';
-  const xray = seedWarehouse && seedStorageOpen;
+  const xray = (seedWarehouse && seedStorageOpen) || (building.id === WAREHOUSE_CONFIG.buildingId && warehouseOpen);
   const northSouthRidge = multiBay ? seedWarehouse : depth > width;
   const roofSpan = northSouthRidge ? width : depth;
   const roofLength = northSouthRidge ? depth : width;
@@ -243,7 +245,8 @@ export const FactoryBuilding: React.FC<FactoryBuildingProps> = ({
         <group position={[0, height / 2, 0]}>
           <mesh position={[0, 0.08, 0]} receiveShadow>
             <boxGeometry args={[width + 0.1, 0.16, depth + 0.1]} />
-            <meshStandardMaterial color={building.roofColor} map={textures.flat} bumpMap={textures.flat} bumpScale={0.02} roughness={0.75} metalness={0.15} />
+            <meshStandardMaterial key={xray ? 'xray' : 'solid'} transparent={xray} opacity={xray ? XRAY_OPACITY : 1} depthWrite={!xray}
+              color={building.roofColor} map={textures.flat} bumpMap={textures.flat} bumpScale={0.02} roughness={0.75} metalness={0.15} />
           </mesh>
           {[-1, 1].map((side) => (
             <group key={side}>
@@ -261,10 +264,10 @@ export const FactoryBuilding: React.FC<FactoryBuildingProps> = ({
       )}
 
       {building.roofType === 'solar_dense' && (
-        <SolarPanelRoof roofWidth={width} roofDepth={depth} height={height / 2} pattern="dense" />
+        <SolarPanelRoof roofWidth={width} roofDepth={depth} height={height / 2} pattern="dense" xray={xray} />
       )}
       {building.roofType === 'solar_striped' && (
-        <SolarPanelRoof roofWidth={width} roofDepth={depth} height={height / 2} pattern="striped" />
+        <SolarPanelRoof roofWidth={width} roofDepth={depth} height={height / 2} pattern="striped" xray={xray} />
       )}
 
       {hasDocks && (

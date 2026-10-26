@@ -1,5 +1,5 @@
-// The descent ends here; the court is level at street height beyond it. Kept short (≈ 4.8 %)
-// so GES-02's north wall east of it is level frontage for dock bank R3.
+// The descent ends here; the court is level at street height beyond it (≈ 4.8 % slope), so
+// GES-02's north wall east of it is level frontage for dock bank R3.
 const SLOPE_END_X = 146;
 
 /** Recessed loading court on the east wall of the northern production annex (dock bank R1). */
@@ -14,7 +14,10 @@ export const LOADING_DOCK = {
   floorY: -1.05,
   streetY: 0.11,
   doorCentersZ: [-5, 2],
-  approach: { minX: SLOPE_END_X, maxX: 196, minZ: -26, maxZ: 7.5 },
+  // Level pad from the end of the descent to the east road; it also carries the R3 stalls.
+  approach: { minX: SLOPE_END_X, maxX: 209, minZ: -26, maxZ: 7.5 },
+  /** North-east corner of the pad left out: the east perimeter road bends through it. */
+  approachRoadCorner: { minX: 196, maxX: 209, minZ: -26, maxZ: -12 },
 } as const;
 
 export const LOADING_PIT = {

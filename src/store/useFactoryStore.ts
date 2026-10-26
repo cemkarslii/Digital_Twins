@@ -5,6 +5,8 @@ import { SITE_BOUNDARY } from '../data/sitePlan';
 import { detailCamera, seedStorageCamera } from '../data/cameraPresets';
 import { bankCenter, DOCK_BANKS, DOCK_DOORS } from '../data/dockBanks';
 import type { LogisticsArea } from '../types/logistics';
+import { rectCenter, WAREHOUSE_LAYOUT, warehouseWorld } from '../data/warehouseLayout';
+import { faceKey, getRackLanes, sectionFaces } from '../data/warehouseLanes';
 
 type Position = [number, number, number];
 interface CameraTarget { position: Position; lookAt: Position }
@@ -23,6 +25,9 @@ const PANELS_CLOSED = {
   inboundOpen: false,
   docksOpen: false,
   selectedDockBankId: null,
+  warehouseOpen: false,
+  selectedWarehouseSectionId: null,
+  selectedWarehouseLane: null,
 } as const;
 
 /**
@@ -56,6 +61,51 @@ function dockCamera(bankId?: string): CameraTarget {
   return clearOfPanel({ position: [cx + span * 0.3, span * 0.75, cz + span * 0.8], lookAt: [cx, 0, cz] }, 0.2);
 }
 
+/**
+ * GES-02 interior: almost straight down with north up, shifted so the plan clears the side panel;
+ * or one section seen from the south, along its aisles. Both keep north at the top of the screen.
+ */
+function warehouseCamera(sectionId?: string): CameraTarget {
+  const section = WAREHOUSE_LAYOUT.sections.find((item) => item.id === sectionId);
+  const { floorY } = WAREHOUSE_LAYOUT;
+  if (section) {
+    const [x, , z] = warehouseWorld(rectCenter(section.bounds), floorY);
+    return { position: [x + 14, 66, z + 50], lookAt: [x + 14, floorY, z + 4] };
+  }
+  const [x, , z] = warehouseWorld(rectCenter(WAREHOUSE_LAYOUT.interior));
+  return { position: [x + 32, 205, z + 52], lookAt: [x + 32, 0, z + 6] };
+}
+
+/**
+ * A picker's view of an aisle face: standing on the far side of the aisle, `eye.back` metres from
+ * `z` towards the corridor end, looking across at the face `look.ahead` metres from `z` towards the
+ * back. Beam labels read and nothing stands between camera and face. Heights are absolute.
+ */
+function acrossAisle(sectionId: string | null, faceId: string, z: number, eye: { back: number; y: number }, look: { ahead: number; y: number }): CameraTarget | null {
+  const section = WAREHOUSE_LAYOUT.sections.find((item) => item.id === sectionId);
+  const face = section && sectionFaces(section.id).find((item) => item.key === faceId);
+  const aisle = section?.aisles.find((item) => item.id === face?.aisleId);
+  if (!face || !aisle) return null;
+  const out = Math.sign(face.frontX - face.backX), along = Math.sign(face.endZ - face.startZ);
+  return {
+    position: warehouseWorld([face.frontX + out * (aisle.width - 0.6), z - along * eye.back], eye.y),
+    lookAt: warehouseWorld([face.frontX, z + along * look.ahead], look.y),
+  };
+}
+
+/** One lane at its own level, from five positions nearer the corridor: the lane, its pin and label in view. */
+function laneCamera(index: number): CameraTarget | null {
+  const lane = getRackLanes()[index];
+  return acrossAisle(lane.sectionId, faceKey(lane), lane.z, { back: 5, y: lane.y + 1.6 }, { ahead: 0, y: lane.y + 0.25 });
+}
+
+/** One aisle face from behind position 1 at forklift-mast height, looking down the face. */
+function faceCamera(sectionId: string | null, faceId: string): CameraTarget | null {
+  const face = sectionId ? sectionFaces(sectionId).find((item) => item.key === faceId) : undefined;
+  const { floorY } = WAREHOUSE_LAYOUT;
+  return face ? acrossAisle(sectionId, faceId, face.startZ, { back: 3, y: floorY + 5 }, { ahead: 16, y: floorY + 2.6 }) : null;
+}
+
 /** Read-only campus content. Only camera and overlay presentation can change. */
 interface FactoryViewState {
   buildings: BuildingEntity[];
@@ -84,6 +134,24 @@ interface FactoryViewState {
   selectedDockBankId: string | null;
   openDocks: (bankId?: string) => void;
   closeDocks: () => void;
+  /** Warehouse mode: see-through GES-02 roof; sections stay closed except the selected one. */
+  warehouseOpen: boolean;
+  selectedWarehouseSectionId: string | null;
+  openWarehouse: (sectionId?: string) => void;
+  /** Opens a section, or closes it again (back to the overview) if it is already open. */
+  toggleWarehouseSection: (sectionId: string) => void;
+  /** Index of the inspected rack lane (WMS bin), always inside the open section. */
+  selectedWarehouseLane: number | null;
+  /** Selects a lane, opening its section first; `focus` also takes the camera into its aisle, facing it. */
+  selectWarehouseLane: (index: number | null, focus?: boolean) => void;
+  /** Rack level shown in the open section; null shows all, though only the top one is visible from above. */
+  warehouseLevel: number | null;
+  setWarehouseLevel: (level: number | null) => void;
+  /** Aisle face shown in the open section (see faceKey); null shows every face. */
+  warehouseFace: string | null;
+  /** Shows one aisle face alone; `focus` also looks along it from inside its aisle. */
+  setWarehouseFace: (face: string | null, focus?: boolean) => void;
+  closeWarehouse: () => void;
   setViewPreset: (preset: ViewPreset) => void;
   toggleZoneOverlay: () => void;
   focusOnBuilding: (id: string) => void;
@@ -102,6 +170,8 @@ export const useFactoryStore = create<FactoryViewState>((set, get) => ({
   viewPreset: 'isometric',
   showZoneOverlay: true,
   cameraTransitionTarget: null,
+  warehouseLevel: null,
+  warehouseFace: null,
   ...PANELS_CLOSED,
   openLogisticsArea: (area) => {
     set(PANELS_CLOSED);
@@ -151,6 +221,48 @@ export const useFactoryStore = create<FactoryViewState>((set, get) => ({
     });
   },
   closeDocks: () => set({ docksOpen: false, selectedDockBankId: null }),
+  openWarehouse: (sectionId) => {
+    const section = WAREHOUSE_LAYOUT.sections.find((item) => item.id === sectionId);
+    set({
+      ...PANELS_CLOSED,
+      warehouseOpen: true,
+      selectedWarehouseSectionId: section?.id ?? null,
+      warehouseLevel: get().warehouseOpen ? get().warehouseLevel : null,
+      // Faces belong to one section.
+      warehouseFace: get().warehouseOpen && section?.id === get().selectedWarehouseSectionId ? get().warehouseFace : null,
+      viewPreset: null,
+      cameraTransitionTarget: warehouseCamera(section?.id),
+    });
+  },
+  toggleWarehouseSection: (sectionId) => {
+    get().openWarehouse(get().selectedWarehouseSectionId === sectionId ? undefined : sectionId);
+  },
+  selectWarehouseLane: (index, focus = false) => {
+    const lane = index === null ? undefined : getRackLanes()[index];
+    if (!lane) { set({ selectedWarehouseLane: null }); return; }
+    if (!get().warehouseOpen || get().selectedWarehouseSectionId !== lane.sectionId) get().openWarehouse(lane.sectionId);
+    // A filter on another level or face would hide the lane just selected.
+    const { warehouseLevel: level, warehouseFace: face } = get();
+    const camera = focus ? laneCamera(lane.index) : null;
+    set({
+      selectedWarehouseLane: lane.index,
+      ...(level !== null && level !== lane.level && { warehouseLevel: lane.level }),
+      ...(face !== null && face !== faceKey(lane) && { warehouseFace: faceKey(lane) }),
+      ...(camera && { cameraTransitionTarget: camera }),
+    });
+  },
+  setWarehouseLevel: (level) => {
+    const lane = get().selectedWarehouseLane;
+    const keep = lane !== null && (level === null || getRackLanes()[lane].level === level);
+    set({ warehouseLevel: level, selectedWarehouseLane: keep ? lane : null });
+  },
+  setWarehouseFace: (face, focus = false) => {
+    const lane = get().selectedWarehouseLane;
+    const keep = lane !== null && (face === null || faceKey(getRackLanes()[lane]) === face);
+    const camera = focus && face ? faceCamera(get().selectedWarehouseSectionId, face) : null;
+    set({ warehouseFace: face, selectedWarehouseLane: keep ? lane : null, ...(camera && { cameraTransitionTarget: camera }) });
+  },
+  closeWarehouse: () => set({ warehouseOpen: false, selectedWarehouseSectionId: null, selectedWarehouseLane: null, warehouseFace: null }),
 
   setViewPreset: (preset) => {
     set(PANELS_CLOSED);
@@ -177,6 +289,7 @@ export const useFactoryStore = create<FactoryViewState>((set, get) => ({
     const building = get().buildings.find((item) => item.id === id);
     if (!building) return;
     if (building.category === 'agri_storage') { get().openSeedStorage(id); return; }
+    if (building.id === WAREHOUSE_LAYOUT.buildingId) { get().openWarehouse(); return; }
     const [x, y, z] = building.position;
     const extent = Math.max(building.dimensions.width, building.dimensions.depth);
     set({ ...PANELS_CLOSED, viewPreset: null, cameraTransitionTarget: {

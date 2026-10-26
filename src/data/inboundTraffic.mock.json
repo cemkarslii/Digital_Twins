@@ -5,64 +5,64 @@
     {
       "id": "inb-001", "licensePlate": "42 DEM 101", "trailerPlate": "42 DEM 901", "vehicleType": "semi_trailer",
       "carrierName": "Örnek Lojistik", "driverFullName": "Yusuf Deneme",
-      "shipment": { "waybillNumber": "IRS-2026-004101", "senderFullName": "Aylin Örnek", "productName": "Buğday Tohumu", "quantity": { "value": 24, "unit": "ton" }, "originCity": "Konya", "temperatureRangeC": null },
-      "route": { "corridor": "D-675", "totalKm": 340, "remainingKm": 286 },
+      "waybill": { "number": "IRS-2026-004101", "issuedAt": "2026-10-22T09:10:00+03:00", "senderFullName": "Aylin Örnek", "productName": "Buğday Tohumu", "quantity": { "value": 24, "unit": "ton" }, "temperatureRangeC": null },
+      "route": { "originCity": "Konya", "corridor": "D-675", "totalKm": 340, "remainingKm": 286 },
       "appointmentAt": "2026-10-22T14:30:00+03:00", "estimatedArrivalAt": "2026-10-22T14:35:00+03:00",
       "telemetry": { "recordedAt": "2026-10-22T10:28:00+03:00", "position": { "lat": 38.24, "lng": 32.21 }, "locationLabel": "Kadınhanı, Konya", "speedKmh": 84, "cargoTemperatureC": null }
     },
     {
       "id": "inb-002", "licensePlate": "43 DEM 102", "trailerPlate": "43 DEM 902", "vehicleType": "semi_trailer",
       "carrierName": "Deneme Soğuk Zincir", "driverFullName": "Hakan Temsili",
-      "shipment": { "waybillNumber": "IRS-2026-004102", "senderFullName": "Ceren Deneme", "productName": "Patates Tohumu", "quantity": { "value": 18, "unit": "ton" }, "originCity": "Kütahya", "temperatureRangeC": [2, 8] },
-      "route": { "corridor": "D-650", "totalKm": 82, "remainingKm": 24 },
+      "waybill": { "number": "IRS-2026-004102", "issuedAt": "2026-10-22T09:10:00+03:00", "senderFullName": "Ceren Deneme", "productName": "Patates Tohumu", "quantity": { "value": 18, "unit": "ton" }, "temperatureRangeC": [2, 8] },
+      "route": { "originCity": "Kütahya", "corridor": "D-650", "totalKm": 82, "remainingKm": 24 },
       "appointmentAt": "2026-10-22T11:00:00+03:00", "estimatedArrivalAt": "2026-10-22T10:50:00+03:00",
       "telemetry": { "recordedAt": "2026-10-22T10:29:00+03:00", "position": { "lat": 39.7, "lng": 30.36 }, "locationLabel": "Kızılinler, Eskişehir", "speedKmh": 72, "cargoTemperatureC": 4.6 }
     },
     {
       "id": "inb-003", "licensePlate": "01 DEM 103", "trailerPlate": "01 DEM 903", "vehicleType": "semi_trailer",
       "carrierName": "Temsili Nakliyat", "driverFullName": "Serkan Örnek",
-      "shipment": { "waybillNumber": "IRS-2026-004103", "senderFullName": "Murat Temsili", "productName": "Mısır Tohumu", "quantity": { "value": 22, "unit": "ton" }, "originCity": "Adana", "temperatureRangeC": null },
-      "route": { "corridor": "O-21 · D-750", "totalKm": 690, "remainingKm": 520 },
+      "waybill": { "number": "IRS-2026-004103", "issuedAt": "2026-10-22T07:30:00+03:00", "senderFullName": "Murat Temsili", "productName": "Mısır Tohumu", "quantity": { "value": 22, "unit": "ton" }, "temperatureRangeC": null },
+      "route": { "originCity": "Adana", "corridor": "O-21 · D-750", "totalKm": 690, "remainingKm": 520 },
       "appointmentAt": "2026-10-22T17:30:00+03:00", "estimatedArrivalAt": "2026-10-22T18:15:00+03:00",
       "telemetry": { "recordedAt": "2026-10-22T10:27:00+03:00", "position": { "lat": 37.43, "lng": 34.87 }, "locationLabel": "Pozantı, Adana", "speedKmh": 0, "cargoTemperatureC": null }
     },
     {
       "id": "inb-004", "licensePlate": "16 DEM 104", "trailerPlate": "16 DEM 904", "vehicleType": "semi_trailer",
       "carrierName": "Örnek Lojistik", "driverFullName": "Tolga Deneme",
-      "shipment": { "waybillNumber": "IRS-2026-004104", "senderFullName": "Zeynep Örnek", "productName": "Arpa Tohumu", "quantity": { "value": 20500, "unit": "kg" }, "originCity": "Bursa", "temperatureRangeC": null },
-      "route": { "corridor": "D-200", "totalKm": 152, "remainingKm": 6 },
+      "waybill": { "number": "IRS-2026-004104", "issuedAt": "2026-10-22T07:50:00+03:00", "senderFullName": "Zeynep Örnek", "productName": "Arpa Tohumu", "quantity": { "value": 20500, "unit": "kg" }, "temperatureRangeC": null },
+      "route": { "originCity": "Bursa", "corridor": "D-200", "totalKm": 152, "remainingKm": 6 },
       "appointmentAt": "2026-10-22T10:45:00+03:00", "estimatedArrivalAt": "2026-10-22T10:38:00+03:00",
       "telemetry": { "recordedAt": "2026-10-22T10:29:00+03:00", "position": { "lat": 39.8, "lng": 30.42 }, "locationLabel": "OSB giriş kavşağı", "speedKmh": 46, "cargoTemperatureC": null }
     },
     {
       "id": "inb-005", "licensePlate": "35 DEM 105", "trailerPlate": null, "vehicleType": "box_truck",
       "carrierName": "Deneme Kargo", "driverFullName": "Barış Temsili",
-      "shipment": { "waybillNumber": "IRS-2026-004105", "senderFullName": "Gizem Deneme", "productName": "Ambalaj Malzemesi", "quantity": { "value": 6200, "unit": "kg" }, "originCity": "İzmir", "temperatureRangeC": null },
-      "route": { "corridor": "D-300", "totalKm": 412, "remainingKm": 168 },
+      "waybill": { "number": "IRS-2026-004105", "issuedAt": "2026-10-22T06:30:00+03:00", "senderFullName": "Gizem Deneme", "productName": "Ambalaj Malzemesi", "quantity": { "value": 6200, "unit": "kg" }, "temperatureRangeC": null },
+      "route": { "originCity": "İzmir", "corridor": "D-300", "totalKm": 412, "remainingKm": 168 },
       "appointmentAt": "2026-10-22T12:00:00+03:00", "estimatedArrivalAt": "2026-10-22T12:10:00+03:00",
       "telemetry": { "recordedAt": "2026-10-22T09:48:00+03:00", "position": { "lat": 38.68, "lng": 29.4 }, "locationLabel": "Uşak çevre yolu", "speedKmh": 79, "cargoTemperatureC": null }
     },
     {
       "id": "inb-006", "licensePlate": "06 DEM 106", "trailerPlate": "06 DEM 906", "vehicleType": "semi_trailer",
       "carrierName": "Deneme Soğuk Zincir", "driverFullName": "Ozan Örnek",
-      "shipment": { "waybillNumber": "IRS-2026-004106", "senderFullName": "Elif Temsili", "productName": "Patates Tohumu", "quantity": { "value": 21, "unit": "ton" }, "originCity": "Ankara", "temperatureRangeC": [2, 8] },
-      "route": { "corridor": "D-200", "totalKm": 235, "remainingKm": 92 },
+      "waybill": { "number": "IRS-2026-004106", "issuedAt": "2026-10-22T07:55:00+03:00", "senderFullName": "Elif Temsili", "productName": "Patates Tohumu", "quantity": { "value": 21, "unit": "ton" }, "temperatureRangeC": [2, 8] },
+      "route": { "originCity": "Ankara", "corridor": "D-200", "totalKm": 235, "remainingKm": 92 },
       "appointmentAt": "2026-10-22T12:00:00+03:00", "estimatedArrivalAt": "2026-10-22T11:50:00+03:00",
       "telemetry": { "recordedAt": "2026-10-22T10:29:00+03:00", "position": { "lat": 39.45, "lng": 31.54 }, "locationLabel": "Sivrihisar, Eskişehir", "speedKmh": 88, "cargoTemperatureC": 9.4 }
     },
     {
       "id": "inb-007", "licensePlate": "03 DEM 107", "trailerPlate": "03 DEM 907", "vehicleType": "semi_trailer",
       "carrierName": "Temsili Nakliyat", "driverFullName": "Kaan Deneme",
-      "shipment": { "waybillNumber": "IRS-2026-004107", "senderFullName": "Sinem Örnek", "productName": "Buğday Tohumu", "quantity": { "value": 25, "unit": "ton" }, "originCity": "Afyonkarahisar", "temperatureRangeC": null },
-      "route": { "corridor": "D-665", "totalKm": 146, "remainingKm": 71 },
+      "waybill": { "number": "IRS-2026-004107", "issuedAt": "2026-10-22T08:55:00+03:00", "senderFullName": "Sinem Örnek", "productName": "Buğday Tohumu", "quantity": { "value": 25, "unit": "ton" }, "temperatureRangeC": null },
+      "route": { "originCity": "Afyonkarahisar", "corridor": "D-665", "totalKm": 146, "remainingKm": 71 },
       "appointmentAt": "2026-10-22T12:30:00+03:00", "estimatedArrivalAt": "2026-10-22T11:32:00+03:00",
       "telemetry": { "recordedAt": "2026-10-22T10:28:00+03:00", "position": { "lat": 39.44, "lng": 30.69 }, "locationLabel": "Seyitgazi, Eskişehir", "speedKmh": 81, "cargoTemperatureC": null }
     },
     {
       "id": "inb-008", "licensePlate": "54 DEM 108", "trailerPlate": "54 DEM 908", "vehicleType": "semi_trailer",
       "carrierName": "Örnek Lojistik", "driverFullName": "Cem Temsili",
-      "shipment": { "waybillNumber": "IRS-2026-004108", "senderFullName": "Derya Deneme", "productName": "Mısır Tohumu", "quantity": { "value": 19400, "unit": "kg" }, "originCity": "Sakarya", "temperatureRangeC": null },
-      "route": { "corridor": "D-650", "totalKm": 156, "remainingKm": 41 },
+      "waybill": { "number": "IRS-2026-004108", "issuedAt": "2026-10-22T08:20:00+03:00", "senderFullName": "Derya Deneme", "productName": "Mısır Tohumu", "quantity": { "value": 19400, "unit": "kg" }, "temperatureRangeC": null },
+      "route": { "originCity": "Sakarya", "corridor": "D-650", "totalKm": 156, "remainingKm": 41 },
       "appointmentAt": "2026-10-22T10:45:00+03:00", "estimatedArrivalAt": "2026-10-22T11:06:00+03:00",
       "telemetry": { "recordedAt": "2026-10-22T10:29:00+03:00", "position": { "lat": 39.91, "lng": 30.04 }, "locationLabel": "Bozüyük, Bilecik", "speedKmh": 64, "cargoTemperatureC": null }
     }

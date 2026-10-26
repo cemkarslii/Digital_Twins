@@ -1,5 +1,6 @@
 import mockData from '../data/logistics.mock.json';
 import type { LogisticsArea, LogisticsRecord, LogisticsStatus } from '../types/logistics';
+import { parseTruckShipment } from './truckShipment';
 
 interface LogisticsAdapter {
   getRecords(signal?: AbortSignal): Promise<LogisticsRecord[]>;
@@ -28,21 +29,12 @@ function isTimestamp(value: unknown): value is string {
 }
 
 function parseRecord(value: unknown, index: number): LogisticsRecord {
-  if (!isObject(value)
+  const truck = parseTruckShipment(value);
+  if (!isObject(value) || !truck
     || !isNonemptyString(value.id)
     || !isArea(value.area)
-    || !isNonemptyString(value.senderFullName)
-    || !isNonemptyString(value.licensePlate)
-    || !isTimestamp(value.waybillDate)
     || !isStatus(value.status)
     || !(value.weighingStartedAt === null || isTimestamp(value.weighingStartedAt))
-    || !isNonemptyString(value.productName)
-    || !isObject(value.waybillQuantity)
-    || typeof value.waybillQuantity.value !== 'number'
-    || !Number.isFinite(value.waybillQuantity.value)
-    || value.waybillQuantity.value < 0
-    || !(value.waybillQuantity.unit === 'kg' || value.waybillQuantity.unit === 'ton')
-    || !isNonemptyString(value.driverFullName)
     || !(value.vehicleId === undefined || isNonemptyString(value.vehicleId))) {
     throw new Error(`Lojistik kaydı geçersiz: ${index + 1}. satır.`);
   }
@@ -50,17 +42,9 @@ function parseRecord(value: unknown, index: number): LogisticsRecord {
   return {
     id: value.id,
     area: value.area,
-    senderFullName: value.senderFullName,
-    licensePlate: value.licensePlate,
-    waybillDate: value.waybillDate,
+    ...truck,
     status: value.status,
     weighingStartedAt: value.weighingStartedAt,
-    productName: value.productName,
-    waybillQuantity: {
-      value: value.waybillQuantity.value,
-      unit: value.waybillQuantity.unit,
-    },
-    driverFullName: value.driverFullName,
     ...(value.vehicleId === undefined ? {} : { vehicleId: value.vehicleId }),
   };
 }
