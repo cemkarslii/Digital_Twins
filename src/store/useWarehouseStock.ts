@@ -32,6 +32,27 @@ export function laneStatus(index: number): LaneStatus {
 
 export const LANE_STATUSES: readonly LaneStatus[] = ['full', 'partial', 'empty', 'unknown'];
 
+const RAMP = WAREHOUSE_CONFIG.partialRamp.map((hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)));
+const toHex = (rgb: number[]) => `#${rgb.map((c) => Math.round(c).toString(16).padStart(2, '0')).join('')}`;
+
+/** Colour of the partial ramp at `t` in [0, 1], fewest to most pallets. */
+export function partialColor(t: number) {
+  const x = Math.min(1, Math.max(0, t)) * (RAMP.length - 1), i = Math.min(RAMP.length - 2, Math.floor(x)), f = x - i;
+  return toHex(RAMP[i].map((c, k) => c + (RAMP[i + 1][k] - c) * f));
+}
+
+/**
+ * Colour of one lane, the single source for scene and panel: empty green, full red, no data pale,
+ * and a partly filled lane on the amber ramp by its share of the capacity: 1 pallet lightest,
+ * capacity − 1 darkest.
+ */
+export function laneColor(index: number) {
+  const status = laneStatus(index);
+  if (status !== 'partial') return WAREHOUSE_CONFIG.stockColors[status];
+  const capacity = laneStock.capacity[index];
+  return partialColor(capacity > 2 ? (laneStock.count[index] - 1) / (capacity - 2) : 0.5);
+}
+
 /** Lanes per status, and pallets against capacity over the lanes with a known state. */
 export interface StockSummary {
   lanes: Record<LaneStatus, number>;

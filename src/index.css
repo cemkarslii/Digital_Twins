@@ -224,6 +224,8 @@ button:focus-visible { outline: 2px solid #2f7966; outline-offset: 4px; }
 .warehouse-legend-row { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 9px 16px 0; font-size: 10px; color: #586252; }
 .warehouse-legend-row span { display: inline-flex; align-items: center; gap: 5px; }
 .warehouse-legend-row i { width: 9px; height: 9px; border-radius: 2px; background: var(--status-color); }
+.warehouse-legend-row i.warehouse-legend-ramp { width: 34px; }
+.warehouse-legend-row small { font-size: 9px; opacity: .65; }
 .warehouse-bar { display: flex; gap: 1px; height: 6px; margin-top: 10px; border-radius: 99px; background: #e4e8df; overflow: hidden; }
 .warehouse-bar span { flex: 0 0 0; min-width: 2px; transition: flex-grow 400ms ease; }
 .warehouse-lane { border-color: var(--status-color); box-shadow: inset 3px 0 0 var(--status-color); }
@@ -245,3 +247,71 @@ button:focus-visible { outline: 2px solid #2f7966; outline-offset: 4px; }
 .warehouse-breakdown-row small { font-size: 9px; font-weight: 400; opacity: .6; }
 .warehouse-breakdown-row .warehouse-bar { margin-top: 0; }
 .warehouse-breakdown-row em { font-style: normal; font-size: 10px; text-align: right; color: #586252; }
+
+/* Warehouse navigation (top left) */
+.wnav { position: absolute; z-index: 25; bottom: 24px; left: 24px; width: 272px; display: flex; flex-direction: column; border: 1px solid #f6f7ed65; border-radius: 10px; background: #f2f4edea; backdrop-filter: blur(16px); box-shadow: 0 8px 32px #27352630; color: #2b382f; overflow: hidden; }
+.wnav header { display: flex; align-items: center; gap: 8px; padding: 12px 14px 10px 10px; }
+.wnav header button { padding: 6px; border-radius: 6px; color: #586252; cursor: pointer; transition: background 160ms, opacity 160ms; }
+.wnav header button:hover:not(:disabled) { background: #e1e6d9; }
+.wnav header button:disabled { opacity: .3; cursor: default; }
+.wnav header small { display: flex; align-items: center; gap: 4px; font-size: 8px; letter-spacing: 1.2px; opacity: .6; font-variant-numeric: tabular-nums; }
+.wnav header h2 { font-size: 15px; font-weight: 500; letter-spacing: -.3px; }
+.wnav-feed { flex: none; width: 7px; height: 7px; margin: 0 2px 0 auto; border-radius: 50%; background: #9aa39a; }
+.wnav-feed-live { background: #3fb27f; }
+.wnav-feed-reconnecting { background: #e8b52e; }
+.wnav-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; padding: 0 10px 10px; border-bottom: 1px solid #dde2d4; }
+.wnav-steps button { display: flex; flex-direction: column; gap: 1px; width: 100%; padding: 5px 7px 6px; border-radius: 6px; text-align: left; color: #9aa39a; box-shadow: inset 0 2px 0 #dde2d4; transition: background 160ms, color 160ms, box-shadow 160ms; }
+.wnav-steps button small { font-size: 8px; letter-spacing: .8px; text-transform: uppercase; opacity: .75; }
+.wnav-steps button strong { overflow: hidden; font-size: 11px; font-weight: 500; white-space: nowrap; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.wnav-steps button[data-done] { color: #2b382f; box-shadow: inset 0 2px 0 #2f7966; cursor: pointer; }
+.wnav-steps button[data-done]:hover { background: #e1e6d9; }
+.wnav-steps button[aria-current="step"] { color: #1d4ed8; background: #e1e9f9; box-shadow: inset 0 2px 0 #2563eb; }
+.wnav-body { display: flex; flex-direction: column; gap: 8px; padding: 10px; }
+.wnav-hint { padding: 0 2px; font-size: 10px; line-height: 1.45; color: #586252; }
+.wnav-tile { display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; padding: 8px; border: 1px solid #dde2d4; border-radius: 6px; background: color-mix(in srgb, var(--fill) 16%, #fbfcf8); box-shadow: inset 3px 0 0 var(--fill); text-align: left; cursor: pointer; transition: border-color 160ms, background 400ms, box-shadow 400ms; }
+.wnav-tile:hover { border-color: #2563eb; }
+.wnav-tile strong { font-size: 12px; font-weight: 600; letter-spacing: .3px; }
+.wnav-tile small { font-size: 9px; color: #586252; font-variant-numeric: tabular-nums; }
+.wnav-corridor, .wnav-dock, .wnav-aisle { display: flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 8px; letter-spacing: 1px; text-transform: uppercase; color: #7c8676; background: repeating-linear-gradient(90deg, #e4e8df 0 6px, #eef1e8 6px 12px); }
+.wnav-site { display: grid; grid-template-columns: 1fr 1fr 30px; grid-template-rows: 58px 20px 58px; grid-template-areas: "north-west north-east dock" "corridor corridor dock" "south-west south-east dock"; gap: 4px; }
+.wnav-dock { writing-mode: vertical-rl; }
+.wnav-section { display: flex; flex-direction: column; gap: 4px; }
+.wnav-section[data-corridor="south"] { flex-direction: column-reverse; }
+.wnav-section .wnav-corridor { height: 20px; }
+.wnav-faces { display: flex; gap: 3px; height: 112px; }
+.wnav-face { flex: 1; align-items: center; justify-content: flex-end; padding: 6px 2px; box-shadow: inset 0 -3px 0 var(--fill); text-align: center; }
+.wnav-aisle { flex: 0 0 20px; writing-mode: vertical-rl; letter-spacing: 1.5px; font-weight: 600; background: repeating-linear-gradient(180deg, #e4e8df 0 6px, #eef1e8 6px 12px); }
+.wnav-levels { display: flex; flex-direction: column; gap: 3px; }
+.wnav-level { display: grid; grid-template-columns: 44px 1fr 74px; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; border-radius: 6px; text-align: left; font-size: 11px; cursor: pointer; transition: background 160ms; }
+.wnav-level:hover { background: #e1e6d9; }
+.wnav-level[aria-pressed="true"] { background: #e1e9f9; box-shadow: inset 2px 0 0 #2563eb; }
+.wnav-level strong { font-weight: 500; }
+.wnav-level small { font-size: 10px; text-align: right; color: #586252; font-variant-numeric: tabular-nums; }
+.wnav-meter { height: 6px; border-radius: 99px; background: #e4e8df; overflow: hidden; }
+.wnav-meter i { display: block; height: 100%; border-radius: inherit; background: var(--fill); transition: width 400ms ease, background 400ms; }
+.wnav-bins { display: flex; flex-direction: column; gap: 3px; }
+.wnav-bin-row { display: grid; grid-template-columns: 26px 1fr; align-items: center; gap: 4px; font-size: 9px; color: #586252; font-variant-numeric: tabular-nums; }
+.wnav-bin-row > div { display: grid; grid-template-columns: repeat(var(--bins), 1fr); gap: 2px; }
+.wnav-bin-row button { height: 16px; min-width: 0; border-radius: 2px; cursor: pointer; transition: background 300ms; }
+.wnav-bin-row button:hover { outline: 1px solid #16201b; z-index: 1; }
+.wnav-bin-row button[aria-pressed="true"] { outline: 2px solid #2563eb; outline-offset: 1px; z-index: 1; }
+.wnav-pick { display: flex; align-items: center; gap: 7px; padding: 7px 9px; border: 1px solid #dde2d4; border-radius: 6px; background: #fbfcf8; font-size: 11px; font-variant-numeric: tabular-nums; }
+.wnav-pick i { flex: none; width: 9px; height: 9px; border-radius: 2px; background: var(--fill); }
+.wnav-pick strong { font-weight: 600; }
+.wnav-pick span { margin-left: auto; color: #586252; }
+/* Collapsed, each on its own: navigation keeps its header and steps, the side panel its header only. */
+.wnav[data-collapsed] .wnav-body { display: none; }
+.wnav[data-collapsed] .wnav-steps { border-bottom: 0; }
+.warehouse-panel header { gap: 6px; }
+.warehouse-panel header > div { margin-right: 4px; }
+.warehouse-panel[data-collapsed] { bottom: auto; }
+.warehouse-panel[data-collapsed] > :not(header) { display: none; }
+.warehouse-panel[data-collapsed] header { border-bottom: 0; }
+/* Narrower screens: the view switcher spans the bottom centre, so the navigation sits above it. */
+@media (max-width: 1100px) {
+  .wnav { bottom: 100px; }
+}
+@media (max-width: 700px) {
+  .wnav { top: 12px; bottom: auto; left: 12px; right: 12px; width: auto; }
+  .wnav-body { display: none; }
+}

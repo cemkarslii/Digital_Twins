@@ -5,10 +5,13 @@ import { SITE_BOUNDARY } from '../data/sitePlan';
 import { detailCamera, seedStorageCamera } from '../data/cameraPresets';
 import { bankCenter, DOCK_BANKS, DOCK_DOORS } from '../data/dockBanks';
 import type { LogisticsArea } from '../types/logistics';
+import type { WarehouseStep, WarehouseView } from '../types/warehouse';
 import { rectCenter, WAREHOUSE_LAYOUT, warehouseWorld } from '../data/warehouseLayout';
 import { faceKey, getRackLanes, sectionFaces } from '../data/warehouseLanes';
 
 type Position = [number, number, number];
+/** Warehouse mode cards that can be collapsed: the side panel and the navigation. */
+export type WarehouseCard = 'panel' | 'nav';
 interface CameraTarget { position: Position; lookAt: Position }
 
 const GATE_CAMERA: CameraTarget = { position: [-148, 65, 24], lookAt: [-86, 0, -40] };
@@ -106,6 +109,15 @@ function faceCamera(sectionId: string | null, faceId: string): CameraTarget | nu
   return face ? acrossAisle(sectionId, faceId, face.startZ, { back: 3, y: floorY + 5 }, { ahead: 16, y: floorY + 2.6 }) : null;
 }
 
+/** One aisle face from behind position 1 at the height of one level, looking down that level. */
+function levelCamera(sectionId: string, faceId: string, level: number): CameraTarget | null {
+  const face = sectionFaces(sectionId).find((item) => item.key === faceId);
+  const first = face?.lanes[level - 1]?.[0];
+  if (first === undefined) return null;
+  const { y } = getRackLanes()[first];
+  return acrossAisle(sectionId, faceId, face!.startZ, { back: 3, y: y + 1.6 }, { ahead: 16, y: y + 0.25 });
+}
+
 /** Read-only campus content. Only camera and overlay presentation can change. */
 interface FactoryViewState {
   buildings: BuildingEntity[];
@@ -142,15 +154,24 @@ interface FactoryViewState {
   toggleWarehouseSection: (sectionId: string) => void;
   /** Index of the inspected rack lane (WMS bin), always inside the open section. */
   selectedWarehouseLane: number | null;
-  /** Selects a lane, opening its section first; `focus` also takes the camera into its aisle, facing it. */
+  /** Selects a lane, opening its section and cutting the rack at its level; `focus` also takes the camera into its aisle, facing it. */
   selectWarehouseLane: (index: number | null, focus?: boolean) => void;
-  /** Rack level shown in the open section; null shows all, though only the top one is visible from above. */
+  /** Top rack level shown in the open section: it and the levels below it are drawn; null draws every level. */
   warehouseLevel: number | null;
-  setWarehouseLevel: (level: number | null) => void;
+  /** Cuts the rack at a level; `focus` also looks down the shown aisle face at that height. */
+  setWarehouseLevel: (level: number | null, focus?: boolean) => void;
+  /** Starts as fill-coloured lane markers each time warehouse mode opens. */
+  warehouseView: WarehouseView;
+  setWarehouseView: (view: WarehouseView) => void;
   /** Aisle face shown in the open section (see faceKey); null shows every face. */
   warehouseFace: string | null;
+  /** Side panel and navigation, each shrunk to its header on its own so more of the scene shows; kept across openings. */
+  warehouseCollapsed: Record<WarehouseCard, boolean>;
+  toggleWarehouseCollapsed: (card: WarehouseCard) => void;
   /** Shows one aisle face alone; `focus` also looks along it from inside its aisle. */
   setWarehouseFace: (face: string | null, focus?: boolean) => void;
+  /** Goes back to `step`: clears its choice and every later one, and returns the camera to where that choice is made. */
+  rewindWarehouse: (step: WarehouseStep) => void;
   closeWarehouse: () => void;
   setViewPreset: (preset: ViewPreset) => void;
   toggleZoneOverlay: () => void;
@@ -158,6 +179,22 @@ interface FactoryViewState {
   focusOnGroundPosition: (position: Position) => void;
   clearCameraTransition: () => void;
   cancelCameraTransition: () => void;
+}
+
+export const WAREHOUSE_STEPS: readonly WarehouseStep[] = ['section', 'face', 'level', 'bin'];
+
+type WarehouseNavSource = Pick<FactoryViewState, 'selectedWarehouseSectionId' | 'warehouseFace' | 'warehouseLevel' | 'selectedWarehouseLane'>;
+
+/** Aisle face the navigation is on: the face filter, or the selected lane's face when a search picked it. */
+export function warehouseNavFace(s: WarehouseNavSource): string | null {
+  return s.warehouseFace ?? (s.selectedWarehouseLane === null ? null : faceKey(getRackLanes()[s.selectedWarehouseLane]));
+}
+
+/** Index in WAREHOUSE_STEPS of the first choice still open; its length once a bin is selected. */
+export function warehouseNavStep(s: WarehouseNavSource): number {
+  const chosen = [s.selectedWarehouseSectionId, warehouseNavFace(s), s.warehouseLevel, s.selectedWarehouseLane];
+  const open = chosen.findIndex((value) => value === null);
+  return open === -1 ? WAREHOUSE_STEPS.length : open;
 }
 
 export const useFactoryStore = create<FactoryViewState>((set, get) => ({
@@ -171,7 +208,9 @@ export const useFactoryStore = create<FactoryViewState>((set, get) => ({
   showZoneOverlay: true,
   cameraTransitionTarget: null,
   warehouseLevel: null,
+  warehouseView: 'occupancy',
   warehouseFace: null,
+  warehouseCollapsed: { panel: false, nav: false },
   ...PANELS_CLOSED,
   openLogisticsArea: (area) => {
     set(PANELS_CLOSED);
@@ -228,6 +267,7 @@ export const useFactoryStore = create<FactoryViewState>((set, get) => ({
       warehouseOpen: true,
       selectedWarehouseSectionId: section?.id ?? null,
       warehouseLevel: get().warehouseOpen ? get().warehouseLevel : null,
+      warehouseView: get().warehouseOpen ? get().warehouseView : 'occupancy',
       // Faces belong to one section.
       warehouseFace: get().warehouseOpen && section?.id === get().selectedWarehouseSectionId ? get().warehouseFace : null,
       viewPreset: null,
@@ -241,27 +281,46 @@ export const useFactoryStore = create<FactoryViewState>((set, get) => ({
     const lane = index === null ? undefined : getRackLanes()[index];
     if (!lane) { set({ selectedWarehouseLane: null }); return; }
     if (!get().warehouseOpen || get().selectedWarehouseSectionId !== lane.sectionId) get().openWarehouse(lane.sectionId);
-    // A filter on another level or face would hide the lane just selected.
-    const { warehouseLevel: level, warehouseFace: face } = get();
+    // The rack is cut at the lane's level, so the lane is on top; a filter on another face would hide it.
+    const face = get().warehouseFace;
     const camera = focus ? laneCamera(lane.index) : null;
     set({
       selectedWarehouseLane: lane.index,
-      ...(level !== null && level !== lane.level && { warehouseLevel: lane.level }),
+      warehouseLevel: lane.level,
       ...(face !== null && face !== faceKey(lane) && { warehouseFace: faceKey(lane) }),
       ...(camera && { cameraTransitionTarget: camera }),
     });
   },
-  setWarehouseLevel: (level) => {
+  setWarehouseLevel: (level, focus = false) => {
     const lane = get().selectedWarehouseLane;
-    const keep = lane !== null && (level === null || getRackLanes()[lane].level === level);
-    set({ warehouseLevel: level, selectedWarehouseLane: keep ? lane : null });
+    const keep = lane !== null && (level === null || getRackLanes()[lane].level <= level);
+    const sectionId = get().selectedWarehouseSectionId, face = get().warehouseFace;
+    const camera = focus && level !== null && sectionId && face ? levelCamera(sectionId, face, level) : null;
+    set({ warehouseLevel: level, selectedWarehouseLane: keep ? lane : null, ...(camera && { cameraTransitionTarget: camera }) });
   },
+  setWarehouseView: (view) => set({ warehouseView: view }),
   setWarehouseFace: (face, focus = false) => {
     const lane = get().selectedWarehouseLane;
     const keep = lane !== null && (face === null || faceKey(getRackLanes()[lane]) === face);
     const camera = focus && face ? faceCamera(get().selectedWarehouseSectionId, face) : null;
     set({ warehouseFace: face, selectedWarehouseLane: keep ? lane : null, ...(camera && { cameraTransitionTarget: camera }) });
   },
+  rewindWarehouse: (step) => {
+    const sectionId = get().selectedWarehouseSectionId, face = warehouseNavFace(get());
+    if (step === 'section' || !sectionId) {
+      get().openWarehouse();
+      set({ warehouseLevel: null });
+    } else if (step === 'face' || !face) {
+      get().openWarehouse(sectionId);
+      set({ warehouseFace: null, warehouseLevel: null });
+    } else if (step === 'level') {
+      const camera = faceCamera(sectionId, face);
+      set({ warehouseFace: face, warehouseLevel: null, selectedWarehouseLane: null, ...(camera && { cameraTransitionTarget: camera }) });
+    } else {
+      set({ warehouseFace: face, selectedWarehouseLane: null });
+    }
+  },
+  toggleWarehouseCollapsed: (card) => set((state) => ({ warehouseCollapsed: { ...state.warehouseCollapsed, [card]: !state.warehouseCollapsed[card] } })),
   closeWarehouse: () => set({ warehouseOpen: false, selectedWarehouseSectionId: null, selectedWarehouseLane: null, warehouseFace: null }),
 
   setViewPreset: (preset) => {

@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Boxes, Search, X } from 'lucide-react';
-import { useFactoryStore } from '../../store/useFactoryStore';
+import { ArrowLeft, Boxes, Maximize2, Minimize2, Search, X } from 'lucide-react';
+import { useFactoryStore, WAREHOUSE_STEPS, warehouseNavStep, type WarehouseCard } from '../../store/useFactoryStore';
 import {
-  FILL_BAND_COLOR, FILL_BAND_LABEL, LANE_STATUSES, laneOfBinCode, useSectionFill, laneStatus, laneStock, openWarehouseStock, useWarehouseStock,
+  FILL_BAND_COLOR, FILL_BAND_LABEL, LANE_STATUSES, laneColor, laneOfBinCode, useSectionFill, laneStatus, laneStock, openWarehouseStock, useWarehouseStock,
   type SectionStock, type StockSummary,
 } from '../../store/useWarehouseStock';
 import { WAREHOUSE_BUILDING, WAREHOUSE_LAYOUT } from '../../data/warehouseLayout';
 import { WAREHOUSE_CONFIG } from '../../data/warehouseConfig';
 import { getRackLanes, sectionFaces, type AisleFace } from '../../data/warehouseLanes';
-import type { LaneStatus, WarehouseSection } from '../../types/warehouse';
+import type { LaneStatus, WarehouseSection, WarehouseView } from '../../types/warehouse';
 import type { FillBand } from '../../store/useWarehouseStock';
 
 const integer = new Intl.NumberFormat('tr-TR');
@@ -62,10 +62,15 @@ function StatusBar({ summary }: { summary: StockSummary }) {
   );
 }
 
+/** Partial lanes are drawn on a ramp, fewest pallets lightest; the legend shows it as one gradient. */
+const RAMP_GRADIENT = `linear-gradient(90deg, ${WAREHOUSE_CONFIG.partialRamp.join(', ')})`;
+
 function Legend() {
   return (
     <div className="warehouse-legend-row">
-      {LANE_STATUSES.map((status) => <span key={status}><i style={statusStyle(status)} />{STATUS_LABEL[status]}</span>)}
+      {LANE_STATUSES.map((status) => status === 'partial'
+        ? <span key={status}><i className="warehouse-legend-ramp" style={{ background: RAMP_GRADIENT }} />{STATUS_LABEL[status]} <small>az → çok</small></span>
+        : <span key={status}><i style={statusStyle(status)} />{STATUS_LABEL[status]}</span>)}
     </div>
   );
 }
@@ -165,9 +170,41 @@ function BinSearch() {
   );
 }
 
+const CARD_NAME: Record<WarehouseCard, string> = { panel: 'Paneli', nav: 'Navigasyonu' };
+
+/** Shrinks one warehouse card to its header, or grows it back; the other card is left as it is. */
+export function CollapseToggle({ card }: { card: WarehouseCard }) {
+  const collapsed = useFactoryStore((s) => s.warehouseCollapsed[card]);
+  const toggle = useFactoryStore((s) => s.toggleWarehouseCollapsed);
+  const label = `${CARD_NAME[card]} ${collapsed ? 'büyüt' : 'küçült'}`;
+  return (
+    <button onClick={() => toggle(card)} aria-label={label} title={label} aria-expanded={!collapsed}>
+      {collapsed ? <Maximize2 size={14} /> : <Minimize2 size={14} />}
+    </button>
+  );
+}
+
+const VIEWS: { view: WarehouseView; label: string; title: string }[] = [
+  { view: 'occupancy', label: 'Boş / dolu', title: 'Gözler doluluk rengiyle; raf dikmeleri gizli' },
+  { view: 'stock', label: 'Tüm kutular', title: 'Raf iskeleti, her palet ve yükü' },
+];
+
+/** Switches the open section between fill-coloured lanes and the full rack with every pallet. */
+function ViewSwitch() {
+  const view = useFactoryStore((s) => s.warehouseView);
+  const setView = useFactoryStore((s) => s.setWarehouseView);
+  return (
+    <div className="inbound-filters" role="group" aria-label="Raf görünümü">
+      {VIEWS.map((item) => (
+        <button key={item.view} aria-pressed={view === item.view} onClick={() => setView(item.view)} title={item.title}>{item.label}</button>
+      ))}
+    </div>
+  );
+}
+
 /**
- * Shows one rack level alone (from above, all levels together show only the top one), and the
- * aisle face filter when one is set.
+ * Cuts the rack at one level: it and the levels below it are drawn, so from above the chosen level
+ * is the one on top. Also shows the aisle face filter when one is set.
  */
 function LevelFilter({ sectionId }: { sectionId: string }) {
   const level = useFactoryStore((s) => s.warehouseLevel);
@@ -179,7 +216,8 @@ function LevelFilter({ sectionId }: { sectionId: string }) {
   return (
     <div className="inbound-filters warehouse-levels" role="group" aria-label="Gösterilen kat ve koridor yüzü">
       {options.map((option) => (
-        <button key={option ?? 'all'} aria-pressed={level === option} onClick={() => setLevel(option)}>
+        <button key={option ?? 'all'} aria-pressed={level === option} onClick={() => setLevel(option)}
+          title={option === null ? 'Bütün katlar' : `Kat ${option} en üstte, altındaki katlarla`}>
           {option === null ? 'Tüm katlar' : `Kat ${option}`}
         </button>
       ))}
@@ -236,7 +274,7 @@ function FaceElevation({ face }: { face: AisleFace }) {
                 const label = `${laneStock.bins[index]?.code ?? lane.id} · ${STATUS_LABEL[status]}${status === 'unknown' ? '' : ` · ${laneStock.count[index]}/${laneStock.capacity[index]}`}`;
                 return (
                   <button key={index} tabIndex={-1} aria-label={label} title={label} aria-pressed={selected === index}
-                    style={{ background: stockColors[status] }} onClick={() => select(index)} />
+                    style={{ background: laneColor(index) }} onClick={() => select(index)} />
                 );
               })}
             </div>
@@ -268,6 +306,7 @@ function SectionList({ sections }: { sections: Map<string, SectionStock> }) {
         <Boxes size={20} strokeWidth={1.5} />
         <div><small>{WAREHOUSE_BUILDING.code} · DEPO İÇİ</small><h2>Depo seçin</h2></div>
         <span className="logistics-count">{integer.format(getRackLanes().length)} göz</span>
+        <CollapseToggle card="panel" />
         <button onClick={close} aria-label="Paneli kapat"><X size={16} /></button>
       </header>
       <FeedLine />
@@ -300,7 +339,7 @@ function LaneDetail({ index }: { index: number }) {
   const status = laneStatus(index);
   const count = laneStock.count[index], capacity = laneStock.capacity[index], updatedAt = laneStock.updatedAt[index];
   return (
-    <section className="logistics-card warehouse-lane" style={statusStyle(status)} aria-label="Seçili göz">
+    <section className="logistics-card warehouse-lane" style={pillStyle(laneColor(index))} aria-label="Seçili göz">
       <div className="logistics-card-head">
         <strong className="logistics-plate">{bin ? `Göz ${bin.code}` : 'WMS gözü yok'}</strong>
         <span className="warehouse-status">{STATUS_LABEL[status]}</span>
@@ -339,6 +378,7 @@ function SectionDetail({ section, stock }: { section: WarehouseSection; stock: S
   const faces = sectionFaces(section.id);
   const face = faces.find((item) => item.key === faceId);
   const fill = useSectionFill(section.id);
+  const view = useFactoryStore((s) => s.warehouseView);
 
   return (
     <>
@@ -349,13 +389,15 @@ function SectionDetail({ section, stock }: { section: WarehouseSection; stock: S
           <h2 className="warehouse-card-name" style={sectionStyle(fill.color)} title={FILL_BAND_LABEL[fill.band]}>{section.name}</h2>
         </div>
         <span className="logistics-count">{integer.format(stock.pallets)} / {integer.format(stock.capacity)} palet</span>
+        <CollapseToggle card="panel" />
         <button onClick={close} aria-label="Paneli kapat"><X size={16} /></button>
       </header>
       <FeedLine />
       <Totals summary={stock} />
       <BinSearch />
+      <ViewSwitch />
       <LevelFilter sectionId={section.id} />
-      <Legend />
+      {view === 'occupancy' && <Legend />}
       <div className="logistics-body">
         {selectedLane !== null && <LaneDetail index={selectedLane} />}
         {face && <FaceElevation face={face} />}
@@ -381,8 +423,8 @@ function SectionDetail({ section, stock }: { section: WarehouseSection; stock: S
           </ul>
         </section>
         <p className="logistics-note">
-          Bir koridor yüzü seçin: sahnede yalnız o yüz kalır, kamera koridorun içinden ona bakar ve raf cephesi burada
-          açılır. Alt katlar için kat seçin. Göz numaraları her katta A1 batı yüzünden başlar, koridor ucundan arkaya 53'er artar. Bağlantı koptuğunda renkler soluklaşır; veri gelmeyen göz boş değil, "veri yok" görünür.
+          Bir koridor yüzü seçin: sahnede yalnız o yüzün rafı kalır, kamera koridorun içinden ona bakar ve raf cephesi
+          burada açılır. Bir kat seçilince o kat ve altındakiler çizilir, seçilen kat en üstte kalır; bir göz seçilince de onun katında kesilir, göz en üstte kalır; Esc bir adım geri gider. Göz numaraları her katta A1 batı yüzünden başlar, koridor ucundan arkaya 53'er artar. Bağlantı koptuğunda renkler soluklaşır; veri gelmeyen göz boş değil, "veri yok" görünür.
         </p>
       </div>
     </>
@@ -391,19 +433,17 @@ function SectionDetail({ section, stock }: { section: WarehouseSection; stock: S
 
 /**
  * Warehouse mode panel. While open it keeps the WMS feed connected. With no section open it lists
- * the sections; with one open it shows that section's lanes and the selected lane. Escape clears
- * the lane, then the aisle face, then steps back, then closes.
+ * the sections; with one open it shows that section's lanes and the selected lane. Escape goes back
+ * one navigation step (bin, level, face, section), then closes.
  */
 export function WarehousePanel() {
   const open = useFactoryStore((s) => s.warehouseOpen);
   const selectedId = useFactoryStore((s) => s.selectedWarehouseSectionId);
-  const selectedLane = useFactoryStore((s) => s.selectedWarehouseLane);
-  const selectLane = useFactoryStore((s) => s.selectWarehouseLane);
-  const face = useFactoryStore((s) => s.warehouseFace);
-  const setFace = useFactoryStore((s) => s.setWarehouseFace);
-  const back = useFactoryStore((s) => s.openWarehouse);
+  const step = useFactoryStore(warehouseNavStep);
+  const rewind = useFactoryStore((s) => s.rewindWarehouse);
   const close = useFactoryStore((s) => s.closeWarehouse);
   const sections = useWarehouseStock((s) => s.sections);
+  const collapsed = useFactoryStore((s) => s.warehouseCollapsed.panel);
 
   useEffect(() => open ? openWarehouseStock() : undefined, [open]);
 
@@ -411,20 +451,18 @@ export function WarehousePanel() {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
-      if (selectedLane !== null) selectLane(null);
-      else if (face !== null) setFace(null);
-      else if (selectedId) back();
-      else close();
+      if (step === 0) close();
+      else rewind(WAREHOUSE_STEPS[step - 1]);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, selectedId, selectedLane, selectLane, face, setFace, back, close]);
+  }, [open, step, rewind, close]);
 
   if (!open) return null;
   const section = WAREHOUSE_LAYOUT.sections.find((item) => item.id === selectedId);
   const stock = section && sections.get(section.id);
   return (
-    <aside className="logistics-panel seed-panel" aria-label="Depo iç görünümü">
+    <aside className="logistics-panel seed-panel warehouse-panel" data-collapsed={collapsed || undefined} aria-label="Depo iç görünümü">
       {section && stock
         ? <SectionDetail key={section.id} section={section} stock={stock} />
         : <SectionList sections={sections} />}

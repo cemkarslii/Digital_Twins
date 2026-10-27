@@ -163,6 +163,12 @@ export interface BinState {
   updatedAt: number;
 }
 
+/** Choices that lead to one bin, in order: section, aisle face, level, then the bin (lane) itself. */
+export type WarehouseStep = 'section' | 'face' | 'level' | 'bin';
+
+/** Open section display: lane markers coloured by fill, or every pallet with its load inside the full rack. */
+export type WarehouseView = 'occupancy' | 'stock';
+
 /** `unknown`: no WMS bin or no state for the lane yet, so it is never shown as empty. */
 export type LaneStatus = 'empty' | 'partial' | 'full' | 'unknown';
 

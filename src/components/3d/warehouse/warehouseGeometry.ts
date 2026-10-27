@@ -1,8 +1,9 @@
-import type { PlanRect, WarehouseLayout, WarehouseSection } from '../../../types/warehouse';
+import type { PlanRect, StorageLocation, WarehouseLayout, WarehouseSection } from '../../../types/warehouse';
 import { WAREHOUSE_CONFIG } from '../../../data/warehouseConfig';
 import { rackLength } from '../../../data/warehouseLayout';
 import { DOCK_HIGH } from '../../../data/dockBanks';
 import { CLEARANCE, type InstanceItem } from '../interiorParts';
+import type { PartExtent } from './focus';
 import { stableHash } from '../../../utils/stableHash';
 
 /**
@@ -179,27 +180,44 @@ export const sectionBand = (section: WarehouseSection, floorY: number) => outlin
   minX: section.bounds.minX + 0.1, maxX: section.bounds.maxX - 0.1, minZ: section.bounds.minZ + 0.1, maxZ: section.bounds.maxZ - 0.1,
 }, 0.22);
 
+/** A rack part with the plan box and level it occupies, so a focus can keep or drop it. */
+export type RackPart = Item & { extent: PartExtent };
+
 /**
- * Contents of one open section: shared uprights and beams across each block (no gap between rows),
- * frame bracing per row, end guards at the cross aisle, safety lines along the two aisles and a
- * forklift in the first aisle. Built only for the section being inspected.
+ * Contents of one open section: uprights, beams and frame bracing, end guards at the cross aisle,
+ * safety lines along the two aisles and a forklift in the first aisle. Uprights are cut per level,
+ * so a focus can cut the rack above a level; drawn together they look like whole uprights. Built
+ * only for the section being inspected.
  */
 export function sectionRackParts(section: WarehouseSection, floorY: number) {
   const F = floorY;
-  const uprights: Item[] = [], beams: Item[] = [], bracing: Item[] = [], guards: Item[] = [], lines: Item[] = [];
+  const uprights: RackPart[] = [], beams: RackPart[] = [], bracing: RackPart[] = [];
+  const guards: Item[] = [], lines: Item[] = [];
   const forklift: ForkliftParts = { body: [], dark: [], forks: [], wheels: [] };
   const H = R.uprightHeight;
   const length = rackLength();
   const braceRise = (H - 0.5) / R.levels;
+  // An upright's level k runs from under its beam to under the next level's beam.
+  const levelBase = (k: number) => k === 1 ? F : F + R.firstLevel + (k - 1) * R.levelPitch - R.beamHeight;
+  const levelTop = (k: number) => k === R.levels ? F + H : levelBase(k + 1);
 
   const { startZ, stepZ } = section.rows[0];
   const frameZ = Array.from({ length: R.positionsPerLevel + 1 }, (_, k) => startZ + stepZ * k * R.positionPitch);
   for (const block of section.blocks) {
     const midZ = (block.minZ + block.maxZ) / 2;
     for (const x of block.uprightX) {
-      for (const z of frameZ) uprights.push({ position: [x, F + H / 2, z], scale: [R.upright, H, R.upright] });
-      for (let level = 0; level < R.levels; level++) {
-        beams.push({ position: [x, F + R.firstLevel + level * R.levelPitch - R.beamHeight / 2, midZ], scale: [BEAM_DEPTH, R.beamHeight, length] });
+      for (let k = 1; k <= R.levels; k++) {
+        const y0 = levelBase(k), y1 = levelTop(k);
+        for (const z of frameZ) {
+          uprights.push({
+            position: [x, (y0 + y1) / 2, z], scale: [R.upright, y1 - y0, R.upright],
+            extent: { minX: x - R.upright / 2, maxX: x + R.upright / 2, level: k },
+          });
+        }
+        beams.push({
+          position: [x, F + R.firstLevel + (k - 1) * R.levelPitch - R.beamHeight / 2, midZ], scale: [BEAM_DEPTH, R.beamHeight, length],
+          extent: { minX: x - BEAM_DEPTH / 2, maxX: x + BEAM_DEPTH / 2, level: k },
+        });
       }
     }
     // Zig-zag diagonals in every row's frame, between the two upright lines it shares with its neighbours.
@@ -211,6 +229,7 @@ export function sectionRackParts(section: WarehouseSection, floorY: number) {
           position: [(xa + xb) / 2, F + 0.25 + (k + 0.5) * braceRise, z],
           scale: [0.035, Math.hypot(dx, braceRise), 0.035],
           rotation: [0, 0, Math.atan2(-dx, braceRise)],
+          extent: { minX: xa, maxX: xb, level: k + 1 },
         });
       }
     }
@@ -241,6 +260,13 @@ function palletAt([x, y, z]: Vec3, key: string, alongX: boolean, pallets: Item[]
     scale: alongX ? [P.length - 0.08, h, P.width - 0.04] : [P.width - 0.04, h, P.length - 0.08],
     color,
   });
+}
+
+/** "Tüm kutular": a pallet with its load for every position, in `locations` order; the scene shows the occupied ones. */
+export function rackStockSlots(locations: StorageLocation[]) {
+  const pallets: Item[] = [], loads: Item[] = [];
+  for (const location of locations) palletAt(location.seat, location.id, true, pallets, loads);
+  return { pallets, loads };
 }
 
 type ForkliftParts = { body: Item[]; dark: Item[]; forks: Item[]; wheels: Item[] };

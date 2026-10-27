@@ -13,11 +13,11 @@ export function CampusOverview() {
   const { viewPreset, setViewPreset, showZoneOverlay, toggleZoneOverlay, openLogisticsArea, seedStorageOpen, openSeedStorage, closeSeedStorage, inboundOpen, openInbound, closeInbound, docksOpen, openDocks, closeDocks, warehouseOpen, openWarehouse, closeWarehouse } = useFactoryStore();
   return (
     <>
-      {viewPreset !== 'top_down' && (
+      {viewPreset !== 'top_down' && !warehouseOpen && (
         <div className="campus-caption pointer-events-none">
           <div className="campus-eyebrow"><span /> REFERANS YERLEŞİMİ</div>
-          <h2>Endüstriyel kampüs</h2>
-          <p>Üretim, depolama ve lojistik.</p>
+          <h2>Fine Food Afyon Yerleşkesi</h2>
+         
           <span className="campus-caption-note">Görsel referanstan modellenmiştir.</span>
         </div>
       )}

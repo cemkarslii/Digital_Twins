@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import type { WarehouseSection } from '../../../types/warehouse';
 import { WAREHOUSE_CONFIG } from '../../../data/warehouseConfig';
 import { WAREHOUSE_LAYOUT } from '../../../data/warehouseLayout';
-import { binsPerLevel, getRackLanes } from '../../../data/warehouseLanes';
+import { binsPerLevel, faceKey, getRackLanes } from '../../../data/warehouseLanes';
+import { useFactoryStore } from '../../../store/useFactoryStore';
 import { BEAM_DEPTH } from './warehouseGeometry';
+import { focusChanged, focusOf, hasFocus, inFocus } from './focus';
 
 const R = WAREHOUSE_CONFIG.rackSystem;
 /** One atlas cell per token; its aspect sets the token's width on the beam. */
@@ -14,6 +16,8 @@ const CELL = { width: 86, height: 32 };
 const LABEL = { height: R.beamHeight - 0.02, gap: 0.004 };
 /** Labels show only this close to the section (metres); farther away they are unreadable specks. */
 const VISIBLE_WITHIN = 18;
+/** Three tokens per label, two triangles each. */
+const INDICES_PER_LANE = 18;
 
 type Cell = [u0: number, v0: number, u1: number, v1: number];
 let atlas: { texture: THREE.CanvasTexture; cells: Map<string, Cell> } | null = null;
@@ -55,7 +59,8 @@ function labelAtlas() {
 
 /**
  * `D1 R30 K1` (depot, WMS bin number, level) on the aisle face of the beam under every lane:
- * three textured quads per lane, merged into one geometry for the whole section.
+ * three textured quads per lane, merged into one geometry for the whole section. Returns the lanes
+ * and the full index too: lane i owns indices [18 i, 18 i + 18).
  */
 function labelGeometry(section: WarehouseSection) {
   const { cells } = labelAtlas();
@@ -85,13 +90,31 @@ function labelGeometry(section: WarehouseSection) {
   geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
   geometry.setIndex(new THREE.BufferAttribute(index, 1));
   geometry.computeBoundingSphere();
-  return geometry;
+  return { geometry, lanes, index };
 }
 
-/** Rack labels of the open section, one draw call, shown only once the camera is close enough to read them. */
+/**
+ * Rack labels of the open section, one draw call, shown only once the camera is close enough to read
+ * them, and only for the lanes in focus: a focus change rewrites the index, never the quads.
+ */
 export function RackLabels({ section }: { section: WarehouseSection }) {
-  const geometry = useMemo(() => labelGeometry(section), [section]);
+  const { geometry, lanes, index } = useMemo(() => labelGeometry(section), [section]);
   useEffect(() => () => geometry.dispose(), [geometry]);
+  useLayoutEffect(() => {
+    const faces = lanes.map(faceKey);
+    const apply = () => {
+      const focus = focusOf(useFactoryStore.getState());
+      let kept = index;
+      if (hasFocus(focus)) {
+        const shown = lanes.flatMap((lane, i) => inFocus(focus, lane, faces[i]) ? [i] : []);
+        kept = new Uint32Array(shown.length * INDICES_PER_LANE);
+        shown.forEach((i, k) => kept.set(index.subarray(i * INDICES_PER_LANE, (i + 1) * INDICES_PER_LANE), k * INDICES_PER_LANE));
+      }
+      geometry.setIndex(new THREE.BufferAttribute(kept, 1));
+    };
+    apply();
+    return useFactoryStore.subscribe((state, previous) => { if (focusChanged(state, previous)) apply(); });
+  }, [geometry, lanes, index]);
   const mesh = useRef<THREE.Mesh>(null);
   const camera = useMemo(() => new THREE.Vector3(), []);
   const top = WAREHOUSE_LAYOUT.floorY + R.uprightHeight;

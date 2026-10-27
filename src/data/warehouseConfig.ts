@@ -86,6 +86,12 @@ export const WAREHOUSE_CONFIG = {
    * green always mean fill.
    */
   fillBands: { high: 0.7, full: 0.9 },
+  /**
+   * Partly filled lanes by pallet count, fewest to most: one amber hue, lightness falling in equal
+   * steps (OKLCH L 0.90 → 0.50, ΔL ≥ 0.06, hue spread 37°), so more pallets read darker. Empty and
+   * full keep their own colours below.
+   */
+  partialRamp: ['#ffd791', '#f2be74', '#e3a657', '#d48d39', '#c47412', '#b55a00', '#a54000'],
   /** Lane markers by status, and section fill bands, shared by the scene and the panel. */
   stockColors: { empty: '#3fb27f', partial: '#e8b52e', full: '#d9483b', unknown: '#cdd2cd' },
 } as const;
